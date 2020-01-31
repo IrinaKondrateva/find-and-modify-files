@@ -10,7 +10,7 @@ const minimist = require('minimist');
 const glob = util.promisify(require('glob'));
 const parse = require('parse-gitignore');
 
-let { dir: filesDir, pattern: searchPattern, ignore: ignoreFilePath } = minimist(process.argv.slice(2));
+let { path: filesDir, search: searchPattern, ignore: ignoreFilePath } = minimist(process.argv.slice(2));
 filesDir = getAbsolutePath(filesDir);
 
 if (ignoreFilePath) {
@@ -19,7 +19,7 @@ if (ignoreFilePath) {
 
 modifyFiles(filesDir, searchPattern, ignoreFilePath)
     .then(result => console.log(result))
-    .catch(err => console.error(err.message));
+    .catch(err => console.error(err));
 
 function modifyFiles (filesDir, searchPattern, ignoreFilePath) {
     return new Promise(async (resolve, reject) => {
@@ -37,7 +37,7 @@ function modifyFiles (filesDir, searchPattern, ignoreFilePath) {
                 throw new Error('Несуществующий путь');
             }
 
-            reject(err);
+            throw err;
         }
 
         try {
@@ -45,21 +45,24 @@ function modifyFiles (filesDir, searchPattern, ignoreFilePath) {
             let files = await glob(searchPattern, { cwd: filesDir, dot: true, ignore: parse(ignorePattern) });
 
             if (!files.length) {
-                reject('Шаблону не соответствует ни один файл из заданной директории');
+                throw new Error('Шаблону не соответствует ни один файл из заданной директории');
             }
 
             const textToAdd = '/* script was here */\n\n';
             files = files.map(async file => {
                 const filePath = path.join(filesDir, file);
                 const data = await readFile(filePath, 'utf8');
-                await writeFile(filePath, `${textToAdd} ${data}`);
+
+                if (!/^\/\* script was here \*\//.test(data)) {
+                    await writeFile(filePath, `${textToAdd} ${data}`);
+                }
             });
 
             await Promise.all(files);
 
             resolve('Done');
         } catch (err) {
-            reject(err);
+            throw err;
         }
     });
 }

@@ -1,8 +1,8 @@
 # Поиск файлов в указанной директории по шаблону и запись в них данных с учетом игнорируемых шаблонов
 Для запуска скрипта перейти в папку проекта и далее задать аргументы dir, pattern, ignore, где
-* dir - путь к директории с файлами;
-* pattern - шаблон поиска в формате glob;
+* path - путь к директории с файлами;
+* search - шаблон поиска в формате glob;
 * ignore - необязательный параметр, путь к файлу, содержащему список шаблонов для игнорирования в формате glob
 
 Пример:
-node index.js --dir=searchhere --pattern=src/**/*.js --ignore=/home/template/ignoredir/.gitignore 
+node index.js --path=searchhere --search=src/**/*.js --ignore=/home/template/ignoredir/.gitignore 
